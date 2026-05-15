@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # email_login
 
 A new Flutter project.
@@ -15,3 +16,7 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+=======
+# secure-login-app
+A sleek and modern Firebase login app built with Flutter 🚀
+>>>>>>> fec5e8e9efcbc5a7f1ccaec29071c8d7b7099625
