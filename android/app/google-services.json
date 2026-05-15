@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "445499590299",
+    "project_id": "email-login-5d1a2",
+    "storage_bucket": "email-login-5d1a2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:445499590299:android:48dbea9c15f9b19db5e83e",
+        "android_client_info": {
+          "package_name": "com.example.email_login"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCHXQnzj9Z4CVLztgXGLLI7haU5TEsgC8Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
