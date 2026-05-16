@@ -1,8 +1,6 @@
 import 'dart:math';
-import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:glassmorphism/glassmorphism.dart';
 
 import 'main.dart';
 
@@ -29,28 +27,28 @@ class _SplashScreenState extends State<SplashScreen>
 
     introController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1800),
+      duration: const Duration(milliseconds: 1500),
     );
 
     rotateController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 9),
+      duration: const Duration(seconds: 8),
     )..repeat();
 
     pulseController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1400),
+      duration: const Duration(milliseconds: 1300),
     )..repeat(reverse: true);
 
     fade = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(parent: introController, curve: Curves.easeIn),
     );
 
-    scale = Tween<double>(begin: 0.65, end: 1).animate(
+    scale = Tween<double>(begin: 0.7, end: 1).animate(
       CurvedAnimation(parent: introController, curve: Curves.easeOutBack),
     );
 
-    pulse = Tween<double>(begin: 0.95, end: 1.05).animate(
+    pulse = Tween<double>(begin: 0.96, end: 1.06).animate(
       CurvedAnimation(parent: pulseController, curve: Curves.easeInOut),
     );
 
@@ -83,23 +81,17 @@ class _SplashScreenState extends State<SplashScreen>
   Widget glowCircle({
     required double size,
     required Color color,
-    required double top,
-    required double left,
   }) {
-    return Positioned(
-      top: top,
-      left: left,
-      child: Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: RadialGradient(
-            colors: [
-              color.withOpacity(0.55),
-              color.withOpacity(0.01),
-            ],
-          ),
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: RadialGradient(
+          colors: [
+            color.withOpacity(0.55),
+            color.withOpacity(0.02),
+          ],
         ),
       ),
     );
@@ -115,9 +107,10 @@ class _SplashScreenState extends State<SplashScreen>
           gradient: LinearGradient(
             colors: [
               Color(0xff020617),
-              Color(0xff172554),
-              Color(0xff581C87),
-              Color(0xffBE185D),
+              Color(0xff111827),
+              Color(0xff312E81),
+              Color(0xff7C3AED),
+              Color(0xffDB2777),
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -125,23 +118,20 @@ class _SplashScreenState extends State<SplashScreen>
         ),
         child: Stack(
           children: [
-            glowCircle(
-              size: 360,
-              color: Colors.cyanAccent,
-              top: -130,
+            Positioned(
+              top: -120,
               left: -120,
+              child: glowCircle(size: 360, color: Colors.cyanAccent),
             ),
-            glowCircle(
-              size: 300,
-              color: Colors.pinkAccent,
-              top: 560,
-              left: 210,
+            Positioned(
+              bottom: -130,
+              right: -110,
+              child: glowCircle(size: 390, color: Colors.pinkAccent),
             ),
-            glowCircle(
-              size: 190,
-              color: Colors.purpleAccent,
+            Positioned(
               top: 210,
-              left: 300,
+              right: -90,
+              child: glowCircle(size: 230, color: Colors.purpleAccent),
             ),
 
             Center(
@@ -149,59 +139,19 @@ class _SplashScreenState extends State<SplashScreen>
                 opacity: fade,
                 child: ScaleTransition(
                   scale: scale,
-                  child: GlassmorphicContainer(
-                    width: 340,
-                    height: 520,
-                    borderRadius: 35,
-                    blur: 20,
-                    alignment: Alignment.center,
-                    border: 1.5,
-                    linearGradient: LinearGradient(
-                      colors: [
-                        Colors.white.withOpacity(0.18),
-                        Colors.white.withOpacity(0.05),
-                      ],
-                    ),
-                    borderGradient: LinearGradient(
-                      colors: [
-                        Colors.white.withOpacity(0.45),
-                        Colors.white.withOpacity(0.08),
-                      ],
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Stack(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ScaleTransition(
+                        scale: pulse,
+                        child: Stack(
                           alignment: Alignment.center,
                           children: [
-                            ScaleTransition(
-                              scale: pulse,
-                              child: Container(
-                                width: 250,
-                                height: 250,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.cyanAccent.withOpacity(0.35),
-                                      blurRadius: 45,
-                                      spreadRadius: 8,
-                                    ),
-                                    BoxShadow(
-                                      color: Colors.pinkAccent.withOpacity(0.28),
-                                      blurRadius: 55,
-                                      spreadRadius: 10,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-
                             RotationTransition(
                               turns: rotateController,
                               child: Container(
-                                width: 255,
-                                height: 255,
+                                width: 310,
+                                height: 310,
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   gradient: SweepGradient(
@@ -213,126 +163,127 @@ class _SplashScreenState extends State<SplashScreen>
                                       Colors.cyanAccent.withOpacity(0.95),
                                     ],
                                   ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.cyanAccent.withOpacity(0.22),
+                                      blurRadius: 40,
+                                      spreadRadius: 5,
+                                    ),
+                                    BoxShadow(
+                                      color:
+                                      Colors.purpleAccent.withOpacity(0.30),
+                                      blurRadius: 55,
+                                      spreadRadius: 8,
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
 
                             Container(
-                              width: 218,
-                              height: 218,
+                              width: 255,
+                              height: 255,
+                              padding: const EdgeInsets.all(24),
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: const Color(0xff020617),
+                                color: Colors.white.withOpacity(0.12),
                                 border: Border.all(
-                                  color: Colors.white.withOpacity(0.18),
+                                  color: Colors.white.withOpacity(0.28),
                                   width: 2,
                                 ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.35),
+                                    blurRadius: 35,
+                                    offset: const Offset(0, 18),
+                                  ),
+                                ],
                               ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(20),
-                                child: Image.asset(
-                                  "assets/Splash_screen.png",
-                                  fit: BoxFit.contain,
-                                ),
+                              child: Image.asset(
+                                "assets/Splash_screen.png",
+                                fit: BoxFit.contain,
                               ),
                             ),
                           ],
                         ),
+                      ),
 
-                        const SizedBox(height: 32),
+                      const SizedBox(height: 42),
 
-                        ShaderMask(
-                          shaderCallback: (bounds) {
-                            return const LinearGradient(
-                              colors: [
-                                Colors.white,
-                                Color(0xffC4B5FD),
-                                Color(0xff67E8F9),
-                              ],
-                            ).createShader(bounds);
+                      const Text(
+                        "Secure Login",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 42,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+
+                      const SizedBox(height: 10),
+
+                      const Text(
+                        "Modern Firebase Authentication",
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 0.7,
+                        ),
+                      ),
+
+                      const SizedBox(height: 45),
+
+                      Container(
+                        width: 240,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: TweenAnimationBuilder<double>(
+                          tween: Tween(begin: 0, end: 1),
+                          duration: const Duration(seconds: 3),
+                          builder: (context, value, child) {
+                            return FractionallySizedBox(
+                              alignment: Alignment.centerLeft,
+                              widthFactor: value,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20),
+                                  gradient: const LinearGradient(
+                                    colors: [
+                                      Color(0xff22D3EE),
+                                      Color(0xffA855F7),
+                                      Color(0xffEC4899),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
                           },
-                          child: AnimatedTextKit(
-                            repeatForever: true,
-                            animatedTexts: [
-                              TyperAnimatedText(
-                                "Secure Login",
-                                speed: const Duration(milliseconds: 110),
-                                textStyle: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 38,
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: 1.2,
-                                ),
-                              ),
-                            ],
-                          ),
                         ),
+                      ),
 
-                        const SizedBox(height: 10),
+                      const SizedBox(height: 18),
 
-                        const Text(
-                          "Firebase Auth • Fast • Safe",
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w500,
-                            letterSpacing: 0.8,
-                          ),
+                      const Text(
+                        "Securing your session...",
+                        style: TextStyle(
+                          color: Colors.white60,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.8,
                         ),
-
-                        const SizedBox(height: 35),
-
-                        GlassmorphicContainer(
-                          width: 230,
-                          height: 50,
-                          borderRadius: 30,
-                          blur: 12,
-                          alignment: Alignment.center,
-                          border: 1,
-                          linearGradient: LinearGradient(
-                            colors: [
-                              Colors.white.withOpacity(0.14),
-                              Colors.white.withOpacity(0.04),
-                            ],
-                          ),
-                          borderGradient: LinearGradient(
-                            colors: [
-                              Colors.white.withOpacity(0.35),
-                              Colors.white.withOpacity(0.08),
-                            ],
-                          ),
-                          child: const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              SizedBox(
-                                width: 17,
-                                height: 17,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2.4,
-                                ),
-                              ),
-                              SizedBox(width: 12),
-                              Text(
-                                "Getting things ready...",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 13.5,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),
             ),
 
             const Positioned(
-              bottom: 24,
+              bottom: 28,
               left: 0,
               right: 0,
               child: Center(

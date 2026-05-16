@@ -14,11 +14,20 @@ class SignupPage extends StatefulWidget {
 class _SignupPageState extends State<SignupPage> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+
   bool isPasswordHidden = true;
-  bool isLoading = false; // 🔥 loader
+  bool isLoading = false;
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
 
   Future<void> signup() async {
-    if (emailController.text.isEmpty || passwordController.text.isEmpty) {
+    if (emailController.text.trim().isEmpty ||
+        passwordController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please fill all fields")),
       );
@@ -34,27 +43,18 @@ class _SignupPageState extends State<SignupPage> {
         password: passwordController.text.trim(),
       );
 
-      await FirebaseFirestore.instance
-          .collection("users")
-          .doc(user.user!.uid)
-          .set({
+      await FirebaseFirestore.instance.collection("users").doc(user.user!.uid).set({
         "email": emailController.text.trim(),
-        "createdAt": DateTime.now(),
+        "createdAt": FieldValue.serverTimestamp(),
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Account Created Successfully 🎉"),
-          backgroundColor: Colors.green,
-        ),
-      );
+      if (!mounted) return;
 
-      // 🔥 direct home
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => HomePage(
-            email: FirebaseAuth.instance.currentUser!.email!,
+          builder: (_) => HomePage(
+            email: FirebaseAuth.instance.currentUser!.email ?? "",
           ),
         ),
       );
@@ -70,15 +70,11 @@ class _SignupPageState extends State<SignupPage> {
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
+        SnackBar(content: Text(message), backgroundColor: Colors.red),
       );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e")),
-      );
+    } finally {
+      if (mounted) setState(() => isLoading = false);
     }
-
-    setState(() => isLoading = false);
   }
 
   Widget buildTextField({
@@ -90,21 +86,30 @@ class _SignupPageState extends State<SignupPage> {
     return TextField(
       controller: controller,
       obscureText: isPassword ? isPasswordHidden : false,
+      style: const TextStyle(color: Colors.white),
       decoration: InputDecoration(
-        prefixIcon: Icon(icon),
+        prefixIcon: Icon(icon, color: Colors.white70),
         hintText: hint,
+        hintStyle: const TextStyle(color: Colors.white54),
         filled: true,
-        fillColor: Colors.grey.shade200,
+        fillColor: Colors.white.withOpacity(0.10),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15),
-          borderSide: BorderSide.none,
+          borderRadius: BorderRadius.circular(18),
+          borderSide: BorderSide(color: Colors.white.withOpacity(0.15)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18),
+          borderSide: BorderSide(color: Colors.white.withOpacity(0.15)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18),
+          borderSide: const BorderSide(color: Colors.cyanAccent, width: 1.5),
         ),
         suffixIcon: isPassword
             ? IconButton(
           icon: Icon(
-            isPasswordHidden
-                ? Icons.visibility_off
-                : Icons.visibility,
+            isPasswordHidden ? Icons.visibility_off : Icons.visibility,
+            color: Colors.white70,
           ),
           onPressed: () {
             setState(() {
@@ -119,21 +124,23 @@ class _SignupPageState extends State<SignupPage> {
 
   Widget buildButton(String text, VoidCallback onTap) {
     return GestureDetector(
-      onTap: isLoading ? null : onTap, // 🔥 disable when loading
+      onTap: isLoading ? null : onTap,
       child: Container(
         width: double.infinity,
-        height: 50,
+        height: 55,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(15),
+          borderRadius: BorderRadius.circular(18),
           gradient: const LinearGradient(
-            colors: [Colors.blue, Colors.purple],
+            colors: [
+              Color(0xff22D3EE),
+              Color(0xff8B5CF6),
+              Color(0xffEC4899),
+            ],
           ),
         ),
         child: Center(
           child: isLoading
-              ? const CircularProgressIndicator(
-            color: Colors.white,
-          )
+              ? const CircularProgressIndicator(color: Colors.white)
               : Text(
             text,
             style: const TextStyle(
@@ -150,34 +157,71 @@ class _SignupPageState extends State<SignupPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(25),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              "Create Account 🚀",
-              style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 30),
+      resizeToAvoidBottomInset: true,
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Color(0xff030712),
+              Color(0xff1E1B4B),
+              Color(0xff6D28D9),
+              Color(0xffDB2777),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(22),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(28),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(32),
+                  color: Colors.white.withOpacity(0.10),
+                  border: Border.all(color: Colors.white.withOpacity(0.15)),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Image.asset("assets/Splash_screen.png", width: 120),
+                    const SizedBox(height: 22),
 
-            buildTextField(
-              hint: "Email",
-              icon: Icons.email,
-              controller: emailController,
-            ),
-            const SizedBox(height: 15),
+                    const Text(
+                      "Create Account 🚀",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 30),
 
-            buildTextField(
-              hint: "Password",
-              icon: Icons.lock,
-              controller: passwordController,
-              isPassword: true,
-            ),
-            const SizedBox(height: 25),
+                    buildTextField(
+                      hint: "Email",
+                      icon: Icons.email,
+                      controller: emailController,
+                    ),
+                    const SizedBox(height: 18),
 
-            buildButton("Signup", signup),
-          ],
+                    buildTextField(
+                      hint: "Password",
+                      icon: Icons.lock,
+                      controller: passwordController,
+                      isPassword: true,
+                    ),
+                    const SizedBox(height: 28),
+
+                    buildButton("Signup", signup),
+                  ],
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );
