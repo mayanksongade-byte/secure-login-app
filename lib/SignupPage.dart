@@ -18,6 +18,9 @@ class _SignupPageState extends State<SignupPage> {
   bool isPasswordHidden = true;
   bool isLoading = false;
 
+  String passwordStrength = "";
+  Color strengthColor = Colors.red;
+
   @override
   void dispose() {
     emailController.dispose();
@@ -25,37 +28,65 @@ class _SignupPageState extends State<SignupPage> {
     super.dispose();
   }
 
+  void checkPasswordStrength(String password) {
+    if (password.isEmpty) {
+      setState(() {
+        passwordStrength = "";
+      });
+      return;
+    }
+
+    if (password.length < 6) {
+      setState(() {
+        passwordStrength = "Weak";
+        strengthColor = Colors.red;
+      });
+    } else if (password.length < 10) {
+      setState(() {
+        passwordStrength = "Medium";
+        strengthColor = Colors.orange;
+      });
+    } else {
+      setState(() {
+        passwordStrength = "Strong";
+        strengthColor = Colors.green;
+      });
+    }
+  }
+
   Future<void> signup() async {
     if (emailController.text.trim().isEmpty ||
         passwordController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please fill all fields")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Please fill all fields")));
       return;
     }
 
     setState(() => isLoading = true);
 
     try {
-      UserCredential user =
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: emailController.text.trim(),
-        password: passwordController.text.trim(),
-      );
+      UserCredential user = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(
+            email: emailController.text.trim(),
+            password: passwordController.text.trim(),
+          );
 
-      await FirebaseFirestore.instance.collection("users").doc(user.user!.uid).set({
-        "email": emailController.text.trim(),
-        "createdAt": FieldValue.serverTimestamp(),
-      });
+      await FirebaseFirestore.instance
+          .collection("users")
+          .doc(user.user!.uid)
+          .set({
+            "email": emailController.text.trim(),
+            "createdAt": FieldValue.serverTimestamp(),
+          });
 
       if (!mounted) return;
 
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (_) => HomePage(
-            email: FirebaseAuth.instance.currentUser!.email ?? "",
-          ),
+          builder: (_) =>
+              HomePage(email: FirebaseAuth.instance.currentUser!.email ?? ""),
         ),
       );
     } on FirebaseAuthException catch (e) {
@@ -82,10 +113,12 @@ class _SignupPageState extends State<SignupPage> {
     required IconData icon,
     required TextEditingController controller,
     bool isPassword = false,
+    Function(String)? onChanged,
   }) {
     return TextField(
       controller: controller,
       obscureText: isPassword ? isPasswordHidden : false,
+      onChanged: onChanged,
       style: const TextStyle(color: Colors.white),
       decoration: InputDecoration(
         prefixIcon: Icon(icon, color: Colors.white70),
@@ -107,17 +140,36 @@ class _SignupPageState extends State<SignupPage> {
         ),
         suffixIcon: isPassword
             ? IconButton(
-          icon: Icon(
-            isPasswordHidden ? Icons.visibility_off : Icons.visibility,
-            color: Colors.white70,
-          ),
-          onPressed: () {
-            setState(() {
-              isPasswordHidden = !isPasswordHidden;
-            });
-          },
-        )
+                icon: Icon(
+                  isPasswordHidden ? Icons.visibility_off : Icons.visibility,
+                  color: Colors.white70,
+                ),
+                onPressed: () {
+                  setState(() {
+                    isPasswordHidden = !isPasswordHidden;
+                  });
+                },
+              )
             : null,
+      ),
+    );
+  }
+
+  Widget buildPasswordStrength() {
+    if (passwordStrength.isEmpty) return const SizedBox();
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 10),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: Text(
+          "Password Strength: $passwordStrength",
+          style: TextStyle(
+            color: strengthColor,
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
+          ),
+        ),
       ),
     );
   }
@@ -131,24 +183,20 @@ class _SignupPageState extends State<SignupPage> {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(18),
           gradient: const LinearGradient(
-            colors: [
-              Color(0xff22D3EE),
-              Color(0xff8B5CF6),
-              Color(0xffEC4899),
-            ],
+            colors: [Color(0xff22D3EE), Color(0xff8B5CF6), Color(0xffEC4899)],
           ),
         ),
         child: Center(
           child: isLoading
               ? const CircularProgressIndicator(color: Colors.white)
               : Text(
-            text,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+                  text,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
         ),
       ),
     );
@@ -213,7 +261,11 @@ class _SignupPageState extends State<SignupPage> {
                       icon: Icons.lock,
                       controller: passwordController,
                       isPassword: true,
+                      onChanged: checkPasswordStrength,
                     ),
+
+                    buildPasswordStrength(),
+
                     const SizedBox(height: 28),
 
                     buildButton("Signup", signup),

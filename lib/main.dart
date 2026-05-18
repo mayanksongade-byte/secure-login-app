@@ -13,7 +13,30 @@ void main() async {
   runApp(const MyApp());
 }
 
-// ---------------- APP ----------------
+bool isValidEmail(String email) {
+  return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
+}
+
+String getFirebaseErrorMessage(String code) {
+  switch (code) {
+    case 'invalid-email':
+      return "Invalid email format";
+    case 'user-not-found':
+      return "No account found with this email";
+    case 'wrong-password':
+      return "Incorrect password";
+    case 'invalid-credential':
+      return "Email or password is incorrect";
+    case 'email-already-in-use':
+      return "This email is already registered";
+    case 'weak-password':
+      return "Password is too weak";
+    case 'network-request-failed':
+      return "No internet connection";
+    default:
+      return "Something went wrong";
+  }
+}
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -26,8 +49,6 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
-// ---------------- BACKGROUND ----------------
 
 class AppBackground extends StatelessWidget {
   final Widget child;
@@ -56,8 +77,6 @@ class AppBackground extends StatelessWidget {
   }
 }
 
-// ---------------- ANIMATED BORDER BOX ----------------
-
 class AnimatedBorderBox extends StatefulWidget {
   final Widget child;
   final double borderRadius;
@@ -83,7 +102,6 @@ class _AnimatedBorderBoxState extends State<AnimatedBorderBox>
   @override
   void initState() {
     super.initState();
-
     controller = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 3),
@@ -122,15 +140,15 @@ class _AnimatedBorderBoxState extends State<AnimatedBorderBox>
               transform: GradientRotation(controller.value * 2 * pi),
               colors: widget.animate
                   ? const [
-                Color(0xff22D3EE),
-                Color(0xff8B5CF6),
-                Color(0xffEC4899),
-                Color(0xff22D3EE),
-              ]
+                      Color(0xff22D3EE),
+                      Color(0xff8B5CF6),
+                      Color(0xffEC4899),
+                      Color(0xff22D3EE),
+                    ]
                   : [
-                Colors.white.withOpacity(0.18),
-                Colors.white.withOpacity(0.18),
-              ],
+                      Colors.white.withOpacity(0.18),
+                      Colors.white.withOpacity(0.18),
+                    ],
             ),
           ),
           child: Container(
@@ -147,8 +165,6 @@ class _AnimatedBorderBoxState extends State<AnimatedBorderBox>
   }
 }
 
-// ---------------- ANIMATED TEXT FIELD ----------------
-
 class AnimatedAuthTextField extends StatefulWidget {
   final String hint;
   final IconData icon;
@@ -156,6 +172,7 @@ class AnimatedAuthTextField extends StatefulWidget {
   final String? Function(String?) validator;
   final bool obscureText;
   final Widget? suffixIcon;
+  final Function(String)? onChanged;
 
   const AnimatedAuthTextField({
     super.key,
@@ -165,6 +182,7 @@ class AnimatedAuthTextField extends StatefulWidget {
     required this.validator,
     this.obscureText = false,
     this.suffixIcon,
+    this.onChanged,
   });
 
   @override
@@ -197,6 +215,7 @@ class _AnimatedAuthTextFieldState extends State<AnimatedAuthTextField> {
       child: TextFormField(
         focusNode: focusNode,
         controller: widget.controller,
+        onChanged: widget.onChanged,
         obscureText: widget.obscureText,
         style: const TextStyle(color: Colors.white),
         validator: widget.validator,
@@ -232,6 +251,7 @@ Widget authTextField({
   required String? Function(String?) validator,
   bool obscureText = false,
   Widget? suffixIcon,
+  Function(String)? onChanged,
 }) {
   return AnimatedAuthTextField(
     hint: hint,
@@ -240,10 +260,9 @@ Widget authTextField({
     validator: validator,
     obscureText: obscureText,
     suffixIcon: suffixIcon,
+    onChanged: onChanged,
   );
 }
-
-// ---------------- BUTTON ----------------
 
 Widget glowButton({
   required String text,
@@ -258,24 +277,20 @@ Widget glowButton({
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(18),
         gradient: const LinearGradient(
-          colors: [
-            Color(0xff22D3EE),
-            Color(0xff8B5CF6),
-            Color(0xffEC4899),
-          ],
+          colors: [Color(0xff22D3EE), Color(0xff8B5CF6), Color(0xffEC4899)],
         ),
       ),
       child: Center(
         child: isLoading
             ? const CircularProgressIndicator(color: Colors.white)
             : Text(
-          text,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+                text,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
       ),
     ),
   );
@@ -315,9 +330,9 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void showSnack(String msg, Color color) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), backgroundColor: color),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(msg), backgroundColor: color));
   }
 
   Future<void> login() async {
@@ -341,19 +356,7 @@ class _LoginPageState extends State<LoginPage> {
         ),
       );
     } on FirebaseAuthException catch (e) {
-      String message = "Login failed";
-
-      if (e.code == 'invalid-email') {
-        message = "Invalid email format";
-      } else if (e.code == 'user-not-found') {
-        message = "No account found";
-      } else if (e.code == 'wrong-password') {
-        message = "Wrong password";
-      } else if (e.code == 'network-request-failed') {
-        message = "No internet connection";
-      }
-
-      showSnack(message, Colors.red);
+      showSnack(getFirebaseErrorMessage(e.code), Colors.red);
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
@@ -362,6 +365,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       body: AppBackground(
         child: Center(
           child: SingleChildScrollView(
@@ -378,7 +382,6 @@ class _LoginPageState extends State<LoginPage> {
                       height: 120,
                     ),
                     const SizedBox(height: 20),
-
                     const Text(
                       "Welcome Back",
                       style: TextStyle(
@@ -388,13 +391,11 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                     const SizedBox(height: 8),
-
                     const Text(
                       "Login to continue securely",
                       style: TextStyle(color: Colors.white70, fontSize: 15),
                     ),
                     const SizedBox(height: 35),
-
                     authTextField(
                       hint: "Email",
                       icon: Icons.email,
@@ -403,14 +404,13 @@ class _LoginPageState extends State<LoginPage> {
                         if (value == null || value.trim().isEmpty) {
                           return "Email is required";
                         }
-                        if (!value.contains("@")) {
-                          return "Enter valid email";
+                        if (!isValidEmail(value.trim())) {
+                          return "Please enter valid email";
                         }
                         return null;
                       },
                     ),
                     const SizedBox(height: 18),
-
                     authTextField(
                       hint: "Password",
                       icon: Icons.lock,
@@ -434,12 +434,11 @@ class _LoginPageState extends State<LoginPage> {
                           return "Password is required";
                         }
                         if (value.length < 6) {
-                          return "Password must be 6 characters";
+                          return "Password must be at least 6 characters";
                         }
                         return null;
                       },
                     ),
-
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
@@ -457,17 +456,13 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 15),
-
                     glowButton(
                       text: "Login",
                       isLoading: isLoading,
                       onTap: login,
                     ),
-
                     const SizedBox(height: 22),
-
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -522,6 +517,8 @@ class _SignupPageState extends State<SignupPage> {
 
   bool isPasswordHidden = true;
   bool isLoading = false;
+  String passwordStrength = "";
+  Color strengthColor = Colors.red;
 
   @override
   void dispose() {
@@ -532,9 +529,26 @@ class _SignupPageState extends State<SignupPage> {
   }
 
   void showSnack(String msg, Color color) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), backgroundColor: color),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(msg), backgroundColor: color));
+  }
+
+  void checkPasswordStrength(String password) {
+    setState(() {
+      if (password.isEmpty) {
+        passwordStrength = "";
+      } else if (password.length < 6) {
+        passwordStrength = "Weak";
+        strengthColor = Colors.red;
+      } else if (password.length < 10) {
+        passwordStrength = "Medium";
+        strengthColor = Colors.orange;
+      } else {
+        passwordStrength = "Strong";
+        strengthColor = Colors.green;
+      }
+    });
   }
 
   Future<void> signup() async {
@@ -543,16 +557,19 @@ class _SignupPageState extends State<SignupPage> {
     setState(() => isLoading = true);
 
     try {
-      UserCredential user =
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: emailController.text.trim(),
-        password: passwordController.text.trim(),
-      );
+      UserCredential user = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(
+            email: emailController.text.trim(),
+            password: passwordController.text.trim(),
+          );
 
-      await FirebaseFirestore.instance.collection("users").doc(user.user!.uid).set({
-        "email": emailController.text.trim(),
-        "createdAt": FieldValue.serverTimestamp(),
-      });
+      await FirebaseFirestore.instance
+          .collection("users")
+          .doc(user.user!.uid)
+          .set({
+            "email": emailController.text.trim(),
+            "createdAt": FieldValue.serverTimestamp(),
+          });
 
       if (!mounted) return;
 
@@ -566,19 +583,7 @@ class _SignupPageState extends State<SignupPage> {
         ),
       );
     } on FirebaseAuthException catch (e) {
-      String message = "Signup failed";
-
-      if (e.code == 'email-already-in-use') {
-        message = "This email is already registered";
-      } else if (e.code == 'invalid-email') {
-        message = "Invalid email format";
-      } else if (e.code == 'weak-password') {
-        message = "Password must be at least 6 characters";
-      } else if (e.code == 'network-request-failed') {
-        message = "No internet connection";
-      }
-
-      showSnack(message, Colors.red);
+      showSnack(getFirebaseErrorMessage(e.code), Colors.red);
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
@@ -587,6 +592,7 @@ class _SignupPageState extends State<SignupPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       body: AppBackground(
         child: Center(
           child: SingleChildScrollView(
@@ -603,7 +609,6 @@ class _SignupPageState extends State<SignupPage> {
                       height: 110,
                     ),
                     const SizedBox(height: 20),
-
                     const Text(
                       "Create Account",
                       style: TextStyle(
@@ -613,13 +618,11 @@ class _SignupPageState extends State<SignupPage> {
                       ),
                     ),
                     const SizedBox(height: 8),
-
                     const Text(
                       "Join the secure experience",
                       style: TextStyle(color: Colors.white70, fontSize: 15),
                     ),
                     const SizedBox(height: 35),
-
                     authTextField(
                       hint: "Email",
                       icon: Icons.email,
@@ -628,18 +631,32 @@ class _SignupPageState extends State<SignupPage> {
                         if (value == null || value.trim().isEmpty) {
                           return "Email is required";
                         }
-                        if (!value.contains("@")) {
-                          return "Enter valid email";
+                        if (!isValidEmail(value.trim())) {
+                          return "Please enter valid email";
                         }
                         return null;
                       },
                     ),
                     const SizedBox(height: 18),
-
+                    if (passwordStrength.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            "Password Strength: $passwordStrength",
+                            style: TextStyle(
+                              color: strengthColor,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
                     authTextField(
                       hint: "Password",
                       icon: Icons.lock,
                       controller: passwordController,
+                      onChanged: checkPasswordStrength,
                       obscureText: isPasswordHidden,
                       suffixIcon: IconButton(
                         icon: Icon(
@@ -659,13 +676,12 @@ class _SignupPageState extends State<SignupPage> {
                           return "Password is required";
                         }
                         if (value.length < 6) {
-                          return "Password must be 6 characters";
+                          return "Password must be at least 6 characters";
                         }
                         return null;
                       },
                     ),
                     const SizedBox(height: 18),
-
                     authTextField(
                       hint: "Confirm Password",
                       icon: Icons.lock_outline,
@@ -682,15 +698,12 @@ class _SignupPageState extends State<SignupPage> {
                       },
                     ),
                     const SizedBox(height: 28),
-
                     glowButton(
                       text: "Signup",
                       isLoading: isLoading,
                       onTap: signup,
                     ),
-
                     const SizedBox(height: 18),
-
                     TextButton(
                       onPressed: () => Navigator.pop(context),
                       child: const Text(
@@ -730,9 +743,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   }
 
   void showSnack(String msg, Color color) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), backgroundColor: color),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(msg), backgroundColor: color));
   }
 
   Future<void> resetPassword() async {
@@ -750,15 +763,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       showSnack("Reset link sent 📧", Colors.green);
       Navigator.pop(context);
     } on FirebaseAuthException catch (e) {
-      String message = "Error sending email";
-
-      if (e.code == 'invalid-email') {
-        message = "Invalid email format";
-      } else if (e.code == 'user-not-found') {
-        message = "No user found with this email";
-      }
-
-      showSnack(message, Colors.red);
+      showSnack(getFirebaseErrorMessage(e.code), Colors.red);
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
@@ -767,6 +772,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       body: AppBackground(
         child: Center(
           child: SingleChildScrollView(
@@ -783,7 +789,6 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                       color: Colors.cyanAccent,
                     ),
                     const SizedBox(height: 22),
-
                     const Text(
                       "Forgot Password",
                       style: TextStyle(
@@ -793,14 +798,12 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                       ),
                     ),
                     const SizedBox(height: 10),
-
                     const Text(
                       "Enter your email to reset your password",
                       textAlign: TextAlign.center,
                       style: TextStyle(color: Colors.white70, fontSize: 15),
                     ),
                     const SizedBox(height: 35),
-
                     authTextField(
                       hint: "Email",
                       icon: Icons.email,
@@ -809,22 +812,19 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                         if (value == null || value.trim().isEmpty) {
                           return "Email is required";
                         }
-                        if (!value.contains("@")) {
-                          return "Enter valid email";
+                        if (!isValidEmail(value.trim())) {
+                          return "Please enter valid email";
                         }
                         return null;
                       },
                     ),
                     const SizedBox(height: 28),
-
                     glowButton(
                       text: "Send Reset Link",
                       isLoading: isLoading,
                       onTap: resetPassword,
                     ),
-
                     const SizedBox(height: 18),
-
                     TextButton(
                       onPressed: () => Navigator.pop(context),
                       child: const Text(
@@ -870,9 +870,9 @@ class _HomePageState extends State<HomePage> {
         MaterialPageRoute(builder: (_) => const LoginPage()),
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Logout failed: $e")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Logout failed: $e")));
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
@@ -901,14 +901,12 @@ class _HomePageState extends State<HomePage> {
                     isLoading
                         ? const CircularProgressIndicator(color: Colors.white)
                         : IconButton(
-                      onPressed: logout,
-                      icon: const Icon(Icons.logout, color: Colors.white),
-                    ),
+                            onPressed: logout,
+                            icon: const Icon(Icons.logout, color: Colors.white),
+                          ),
                   ],
                 ),
-
                 const Spacer(),
-
                 AnimatedBorderBox(
                   borderRadius: 35,
                   padding: EdgeInsets.zero,
@@ -925,7 +923,6 @@ class _HomePageState extends State<HomePage> {
                           height: 135,
                         ),
                         const SizedBox(height: 25),
-
                         const Text(
                           "Welcome 🎉",
                           style: TextStyle(
@@ -935,7 +932,6 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                         const SizedBox(height: 12),
-
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 18),
                           child: Text(
@@ -951,9 +947,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                 ),
-
                 const Spacer(),
-
                 const Text(
                   "Powered by Firebase 🔥",
                   style: TextStyle(color: Colors.white60, fontSize: 13),
